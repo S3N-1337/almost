@@ -608,6 +608,7 @@
     app.style.height = vh + 'px';
     Render.resize(w, vh);
     if (G.mode === 'menu') drawLogo(false);
+    Platform.lockPortrait();
   }
 
   /* ---------- Старт ---------- */

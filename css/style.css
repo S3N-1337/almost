@@ -5,8 +5,13 @@
   --c: #00e5ff;
   --c-rgb: 0, 229, 255;
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --top: env(safe-area-inset-top, 0px);
-  --bottom: env(safe-area-inset-bottom, 0px);
+  /* Безопасные зоны. В полноэкранном Telegram сверху поверх игры лежат кнопки «Закрыть» и «⋯» —
+     Telegram сообщает их высоту в --tg-safe-area-inset-* (вырез экрана) и --tg-content-safe-area-inset-* (свои кнопки).
+     В обычном браузере этих переменных нет → 0, и остаётся стандартный env(safe-area-inset-*). */
+  --tg-top: calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+  --tg-bottom: calc(var(--tg-safe-area-inset-bottom, 0px) + var(--tg-content-safe-area-inset-bottom, 0px));
+  --top: max(env(safe-area-inset-top, 0px), var(--tg-top));
+  --bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-bottom));
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -28,7 +33,7 @@ html, body {
 
 #safe-probe {
   position: fixed; top: 0; left: 0; width: 1px;
-  height: env(safe-area-inset-top, 0px);
+  height: var(--top); /* по высоте этого элемента canvas узнаёт, насколько опустить полоску прогресса */
   visibility: hidden; pointer-events: none;
 }
 

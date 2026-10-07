@@ -1,6 +1,7 @@
 /*
  * platform.js — всё, что связано с Telegram Mini App:
  *   - ready(), expand(), отключение вертикальных свайпов
+ *   - полноэкранный режим без шапки и фиксация вертикальной ориентации (Telegram 8.0+)
  *   - вибрация (HapticFeedback)
  *   - кнопка «Назад» в шапке Telegram
  *   - сохранение прогресса: Telegram CloudStorage, а в обычном браузере — localStorage
@@ -37,11 +38,39 @@ var Platform = (function () {
       else if (ver('6.1')) tg.setHeaderColor('bg_color');
     } catch (e) { }
     try { if (ver('7.10') && tg.setBottomBarColor) tg.setBottomBarColor(BG); } catch (e) { }
-    try { if (opts.onResize) tg.onEvent('viewportChanged', opts.onResize); } catch (e) { }
+
+    // Полноэкранный режим без шапки Telegram (Bot API 8.0+). Только на телефонах:
+    // на компьютере вертикальная игра на весь монитор смотрится хуже.
+    try {
+      if (ver('8.0') && isMobile() && typeof tg.requestFullscreen === 'function' && !tg.isFullscreen) tg.requestFullscreen();
+    } catch (e) { }
+    lockPortrait();
+
+    // при смене размера, полноэкранного режима или безопасных зон — пересчитать раскладку.
+    // Небольшая задержка: Telegram сначала обновляет CSS-переменные --tg-*-safe-area-inset-*, потом мы их читаем.
+    if (opts.onResize) {
+      var relayout = function () { setTimeout(opts.onResize, 30); };
+      ['viewportChanged', 'fullscreenChanged', 'safeAreaChanged', 'contentSafeAreaChanged'].forEach(function (name) {
+        try { tg.onEvent(name, relayout); } catch (e) { }
+      });
+    }
     try { if (opts.onPause && ver('8.0')) tg.onEvent('deactivated', opts.onPause); } catch (e) { }
     try {
       if (ver('6.1') && tg.BackButton) tg.BackButton.onClick(function () { if (backHandler) backHandler(); });
     } catch (e) { }
+  }
+
+  function isMobile() {
+    return /^(android|ios)/.test(String(tg && tg.platform));
+  }
+
+  // Фиксирует вертикальную ориентацию (Bot API 8.0+). Telegram фиксирует ТЕКУЩУЮ ориентацию,
+  // поэтому если телефон сейчас лежит боком — ждём, пока его повернут вертикально (вызывается и при каждом resize).
+  var orientationLocked = false;
+  function lockPortrait() {
+    if (orientationLocked || !inTG || !ver('8.0') || typeof tg.lockOrientation !== 'function') return;
+    if (window.innerHeight < window.innerWidth) return;
+    try { tg.lockOrientation(); orientationLocked = true; } catch (e) { }
   }
 
   function showBack(show) {
@@ -112,6 +141,7 @@ var Platform = (function () {
     isTelegram: inTG,
     hasCloud: !!cloud,
     init: init,
+    lockPortrait: lockPortrait,
     showBack: showBack,
     haptic: haptic,
     load: load,
