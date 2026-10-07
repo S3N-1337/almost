@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#07050f">
+<meta name="format-detection" content="telephone=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>ALMOST — игра на одну кнопку</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307050f'/%3E%3Crect x='7' y='7' width='18' height='18' fill='none' stroke='%2300e5ff' stroke-width='3'/%3E%3Crect x='13' y='13' width='6' height='6' fill='%23fff'/%3E%3C/svg%3E">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="safe-probe"></div>
+
+<div id="app">
+  <canvas id="game"></canvas>
+
+  <button id="btn-pause" class="icon-btn hidden" type="button" aria-label="Пауза">
+    <svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+  </button>
+  <button id="btn-sound" class="icon-btn" type="button" aria-label="Звук">
+    <svg class="ic-on" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+    <svg class="ic-off" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16 9l5 6M21 9l-5 6" fill="none" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+
+  <!-- Главное меню -->
+  <section id="menu" class="screen scroll-y">
+    <div class="menu-wrap">
+      <canvas id="logo" class="logo" aria-label="ALMOST"></canvas>
+      <div class="tagline">одна кнопка · 10 уровней<br>сколько попыток нужно тебе?</div>
+      <button id="btn-play" class="btn btn-primary btn-play" type="button">
+        <span>ИГРАТЬ</span>
+        <small id="play-sub">уровень 1</small>
+      </button>
+      <div id="level-grid" class="level-grid"></div>
+      <div class="menu-foot"><span id="menu-total"></span></div>
+    </div>
+  </section>
+
+  <!-- Пауза -->
+  <section id="pause" class="screen hidden">
+    <div class="panel">
+      <div class="panel-title">ПАУЗА</div>
+      <button class="btn btn-primary" type="button" data-act="resume">ПРОДОЛЖИТЬ</button>
+      <button class="btn" type="button" data-act="restart">ЗАНОВО</button>
+      <button class="btn btn-ghost" type="button" data-act="menu">УРОВНИ</button>
+    </div>
+  </section>
+
+  <!-- Карточка прохождения уровня -->
+  <section id="card" class="screen hidden">
+    <div class="card" id="card-box">
+      <div class="card-head">
+        <span class="card-logo">ALMOST</span>
+        <span class="card-diff" id="card-diff"></span>
+      </div>
+      <div class="card-level">УРОВЕНЬ <span id="card-num">1</span></div>
+      <div class="card-name" id="card-name"></div>
+      <div class="card-done">ПРОЙДЕН</div>
+      <div class="card-big">
+        <div class="card-attempts" id="card-attempts">1</div>
+        <div class="card-attempts-lbl" id="card-attempts-lbl">попытка</div>
+      </div>
+      <div class="card-stats">
+        <div><b id="card-time">0 с</b><span>в уровне</span></div>
+        <div><b id="card-jumps">0</b><span>прыжков</span></div>
+        <div><b id="card-total">0</b><span>попыток всего</span></div>
+      </div>
+      <div class="card-badge hidden" id="card-badge"></div>
+    </div>
+    <div class="card-actions">
+      <button class="btn btn-primary" type="button" data-act="next" id="btn-next">ДАЛЬШЕ</button>
+      <div class="btn-row">
+        <button class="btn" type="button" data-act="retry">ЕЩЁ РАЗ</button>
+        <button class="btn btn-ghost" type="button" data-act="menu">УРОВНИ</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="js/levels.js"></script>
+<script src="js/physics.js"></script>
+<script src="js/solver.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/platform.js"></script>
+<script src="js/render.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
