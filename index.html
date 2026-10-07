@@ -10,7 +10,8 @@
 <title>ALMOST — игра на одну кнопку</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2307050f'/%3E%3Crect x='7' y='7' width='18' height='18' fill='none' stroke='%2300e5ff' stroke-width='3'/%3E%3Crect x='13' y='13' width='6' height='6' fill='%23fff'/%3E%3C/svg%3E">
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="stylesheet" href="css/style.css">
+<!-- ?v=4 — номер версии: при каждом обновлении игры увеличивайте его, чтобы телефоны не брали старые файлы из кэша -->
+<link rel="stylesheet" href="css/style.css?v=4">
 </head>
 <body>
 <div id="safe-probe"></div>
@@ -37,6 +38,17 @@
       </button>
       <div id="level-grid" class="level-grid"></div>
       <div class="menu-foot"><span id="menu-total"></span></div>
+      <div class="menu-ver" id="menu-ver"></div>
+    </div>
+  </section>
+
+  <!-- Диагностика: 5 быстрых нажатий на логотип -->
+  <section id="diag" class="screen scroll-y hidden">
+    <div class="diag-box">
+      <div class="diag-title">ДИАГНОСТИКА</div>
+      <pre id="diag-text"></pre>
+      <button class="btn btn-primary" type="button" id="diag-fs">ПОПРОБОВАТЬ ПОЛНЫЙ ЭКРАН</button>
+      <button class="btn btn-ghost" type="button" id="diag-close">ЗАКРЫТЬ</button>
     </div>
   </section>
 
@@ -81,12 +93,12 @@
   </section>
 </div>
 
-<script src="js/levels.js"></script>
-<script src="js/physics.js"></script>
-<script src="js/solver.js"></script>
-<script src="js/audio.js"></script>
-<script src="js/platform.js"></script>
-<script src="js/render.js"></script>
-<script src="js/game.js"></script>
+<script src="js/levels.js?v=4"></script>
+<script src="js/physics.js?v=4"></script>
+<script src="js/solver.js?v=4"></script>
+<script src="js/audio.js?v=4"></script>
+<script src="js/platform.js?v=4"></script>
+<script src="js/render.js?v=4"></script>
+<script src="js/game.js?v=4"></script>
 </body>
 </html>

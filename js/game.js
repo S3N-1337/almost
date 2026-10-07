@@ -14,6 +14,7 @@
   var P = Physics, C = P.C;
   var $ = function (id) { return document.getElementById(id); };
 
+  var BUILD = 4; // номер версии (показывается внизу меню; держите равным ?v= в index.html)
   var params = new URLSearchParams(location.search);
   var AUTOPLAY = params.has('autoplay');
   var UNLOCK_ALL = params.get('unlock') === 'all' || AUTOPLAY;
@@ -483,6 +484,13 @@
     var ni = nextLevelIndex();
     $('play-sub').textContent = 'уровень ' + (ni + 1) + ' · ' + levels[ni].name;
     $('menu-total').textContent = save.total ? 'всего попыток: ' + save.total : '';
+    $('menu-ver').textContent = 'версия ' + BUILD;
+  }
+
+  function showDiag() {
+    var lines = ['Версия игры: ' + BUILD].concat(Platform.diagnostics());
+    $('diag-text').textContent = lines.join('\n');
+    show('diag');
   }
 
   /* ---------- Звук ---------- */
@@ -525,9 +533,23 @@
     window.addEventListener('pointercancel', releasePointer);
     cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
-    // первый жест пользователя включает звук
+    // первый жест пользователя включает звук (и ещё раз просит у Telegram полный экран)
     ['pointerdown', 'touchend', 'keydown'].forEach(function (t) {
-      document.addEventListener(t, function () { Sound.unlock(); }, true);
+      document.addEventListener(t, function () { Sound.unlock(); Platform.onUserGesture(); }, true);
+    });
+
+    // диагностика: 5 быстрых нажатий на логотип
+    var logoTaps = [];
+    $('logo').addEventListener('pointerdown', function () {
+      var now = Date.now();
+      logoTaps = logoTaps.filter(function (t) { return now - t < 2000; });
+      logoTaps.push(now);
+      if (logoTaps.length >= 5) { logoTaps = []; showDiag(); }
+    });
+    $('diag-close').addEventListener('click', function () { hide('diag'); });
+    $('diag-fs').addEventListener('click', function () {
+      Platform.tryFullscreen('кнопка в диагностике');
+      setTimeout(showDiag, 700);
     });
 
     // не даём странице прокручиваться и «пружинить» (кроме списка уровней)

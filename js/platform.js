@@ -27,9 +27,9 @@ var Platform = (function () {
   function init(opts) {
     opts = opts || {};
     backHandler = opts.onBack || null;
-    if (!tg) return;
+    if (!tg) { tryFullscreen('при запуске'); return; } // только запишет причину для диагностики
     try { tg.ready(); } catch (e) { }
-    if (!inTG) return;
+    if (!inTG) { tryFullscreen('при запуске'); return; }
     try { tg.expand(); } catch (e) { }
     try { if (ver('7.7') && tg.disableVerticalSwipes) tg.disableVerticalSwipes(); } catch (e) { }
     try { if (ver('6.1')) tg.setBackgroundColor(BG); } catch (e) { }
@@ -39,11 +39,12 @@ var Platform = (function () {
     } catch (e) { }
     try { if (ver('7.10') && tg.setBottomBarColor) tg.setBottomBarColor(BG); } catch (e) { }
 
-    // Полноэкранный режим без шапки Telegram (Bot API 8.0+). Только на телефонах:
-    // на компьютере вертикальная игра на весь монитор смотрится хуже.
+    // ответы Telegram на запрос полного экрана — для экрана диагностики
     try {
-      if (ver('8.0') && isMobile() && typeof tg.requestFullscreen === 'function' && !tg.isFullscreen) tg.requestFullscreen();
+      tg.onEvent('fullscreenChanged', function () { log('fullscreenChanged → ' + (tg.isFullscreen ? 'полный экран' : 'обычный режим')); });
+      tg.onEvent('fullscreenFailed', function (e) { diag.failed = (e && e.error) || '?'; log('fullscreenFailed → ' + diag.failed); });
     } catch (e) { }
+    tryFullscreen('при запуске');
     lockPortrait();
 
     // при смене размера, полноэкранного режима или безопасных зон — пересчитать раскладку.
@@ -62,6 +63,67 @@ var Platform = (function () {
 
   function isMobile() {
     return /^(android|ios)/.test(String(tg && tg.platform));
+  }
+
+  /* ---------- Полноэкранный режим ---------- */
+  var diag = { fs: 'ещё не запрашивали', failed: '', events: [] };
+  function log(s) {
+    diag.events.push(new Date().toTimeString().slice(0, 8) + '  ' + s);
+    if (diag.events.length > 10) diag.events.shift();
+  }
+
+  // Полный экран без шапки Telegram (Bot API 8.0+). Только на телефонах:
+  // на компьютере вертикальная игра на весь монитор смотрится хуже.
+  function tryFullscreen(why) {
+    if (!tg) { diag.fs = 'нет: Telegram SDK не загрузился'; return; }
+    if (!inTG) { diag.fs = 'нет: игра открыта не как мини-приложение (initData пустая)'; return; }
+    if (!ver('8.0')) { diag.fs = 'нет: Telegram поддерживает только API ' + tg.version + ' (нужно 8.0+)'; return; }
+    if (!isMobile()) { diag.fs = 'нет: не телефон (' + tg.platform + ')'; return; }
+    if (typeof tg.requestFullscreen !== 'function') { diag.fs = 'нет: в SDK нет requestFullscreen'; return; }
+    if (tg.isFullscreen) { diag.fs = 'уже полный экран'; return; }
+    try {
+      tg.requestFullscreen();
+      diag.fs = 'запрос отправлен (' + why + ')';
+      log('requestFullscreen (' + why + ')');
+    } catch (e) { diag.fs = 'ошибка: ' + e.message; log('ошибка: ' + e.message); }
+  }
+
+  // Некоторые версии Telegram разрешают полный экран только после касания —
+  // поэтому при первом касании пробуем ещё раз.
+  var gestureDone = false;
+  function onUserGesture() {
+    if (gestureDone) return;
+    gestureDone = true;
+    if (inTG && !tg.isFullscreen && diag.failed !== 'UNSUPPORTED') tryFullscreen('после касания');
+    lockPortrait();
+  }
+
+  function cssVar(name) {
+    try { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '—'; } catch (e) { return '?'; }
+  }
+
+  // Строки для экрана диагностики (5 тапов по логотипу)
+  function diagnostics() {
+    var L = [];
+    L.push('Telegram SDK: ' + (tg ? 'загружен' : 'НЕ ЗАГРУЖЕН (нет доступа к telegram.org?)'));
+    L.push('Мини-приложение (initData): ' + (inTG ? 'да, ' + tg.initData.length + ' симв.' : 'НЕТ'));
+    if (tg) {
+      L.push('Версия API Telegram: ' + tg.version + ' · платформа: ' + tg.platform);
+      L.push('Поддержка 8.0: ' + (ver('8.0') ? 'да' : 'нет') + ' · requestFullscreen в SDK: ' + (typeof tg.requestFullscreen === 'function' ? 'есть' : 'нет'));
+      L.push('Полный экран сейчас: ' + (tg.isFullscreen ? 'ДА' : 'нет'));
+      L.push('Запрос полного экрана: ' + diag.fs);
+      if (diag.failed) L.push('Telegram отказал: ' + diag.failed);
+      L.push('Ориентация зафиксирована: ' + (orientationLocked ? 'да' : 'нет') + (tg.isOrientationLocked !== undefined ? ' (Telegram: ' + tg.isOrientationLocked + ')' : ''));
+      var sa = tg.safeAreaInset || {}, ca = tg.contentSafeAreaInset || {};
+      L.push('safeAreaInset: верх ' + (sa.top || 0) + ', низ ' + (sa.bottom || 0));
+      L.push('contentSafeAreaInset: верх ' + (ca.top || 0) + ', низ ' + (ca.bottom || 0));
+    }
+    L.push('CSS --tg-safe-area-inset-top: ' + cssVar('--tg-safe-area-inset-top'));
+    L.push('CSS --tg-content-safe-area-inset-top: ' + cssVar('--tg-content-safe-area-inset-top'));
+    L.push('Экран: ' + window.innerWidth + '×' + window.innerHeight + ' · dpr ' + (window.devicePixelRatio || 1));
+    L.push('Облачные сохранения: ' + (cloud ? 'да' : 'нет'));
+    if (diag.events.length) { L.push(''); L.push('События:'); L = L.concat(diag.events); }
+    return L;
   }
 
   // Фиксирует вертикальную ориентацию (Bot API 8.0+). Telegram фиксирует ТЕКУЩУЮ ориентацию,
@@ -142,6 +204,9 @@ var Platform = (function () {
     hasCloud: !!cloud,
     init: init,
     lockPortrait: lockPortrait,
+    onUserGesture: onUserGesture,
+    tryFullscreen: tryFullscreen,
+    diagnostics: diagnostics,
     showBack: showBack,
     haptic: haptic,
     load: load,

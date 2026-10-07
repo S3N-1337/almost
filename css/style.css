@@ -237,6 +237,26 @@ html, body {
 
 .menu-foot { margin-top: 14px; min-height: 16px; font: 600 12px/1 var(--font); color: rgba(255, 255, 255, 0.4); letter-spacing: 0.04em; }
 
+.menu-ver { margin-top: 8px; font: 600 10px/1 var(--font); color: rgba(255, 255, 255, 0.22); letter-spacing: 0.06em; }
+
+/* ---------- Диагностика (5 нажатий на логотип) ---------- */
+#diag { z-index: 50; background: rgba(7, 5, 15, 0.96); justify-content: flex-start; overflow-y: auto; touch-action: pan-y; }
+.diag-box { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 10px; }
+.diag-title { font: 900 18px/1 var(--font); letter-spacing: 0.14em; color: var(--c); }
+#diag pre {
+  margin: 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font: 12px/1.5 ui-monospace, Menlo, Consolas, monospace;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: pre-wrap;
+  word-break: break-word;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 /* ---------- Пауза ---------- */
 .panel {
   width: 100%;
